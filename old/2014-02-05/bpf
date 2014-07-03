@@ -1,0 +1,114 @@
+#!/bin/bash
+#
+# bpf	Compile and run a bpf program for live tracing. 2014-02-05 BPF only.
+#
+# This is intended to be run from the tools/bpf/examples directory of the
+# 2014-02-05 version of extended BPF (eBPF). This is really just a hack/
+# workaround until support exists in perf(1) proper.
+#
+# COPYRIGHT: Copyright (c) 2014 Brendan Gregg.
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#  (http://www.gnu.org/copyleft/gpl.html
+#
+# 2014-06-06	Brendan Gregg	Created this.
+
+function usage {
+	echo >&2 "USAGE: $0 bpf_program[.c] [probedir]"
+	exit
+}
+
+(( $# == 0 )) && usage
+file=$1
+[[ "$file" != *.c ]] && file=$file.c
+if [[ ! -e $file ]]; then
+	echo >&2 "ERROR: Can't find bpf program: $file"
+	usage
+fi
+probedir=$2
+
+if [[ "$USER" != root ]]; then
+	echo >&2 "ERROR: Need to be run as root user. Exiting.."
+	exit
+fi
+
+tracepipe=/sys/kernel/debug/tracing/trace_pipe
+tracefile=/sys/kernel/debug/tracing/trace
+if [[ ! -e $tracepipe || ! -e $tracefile ]]; then
+	echo >&2 "ERROR: Missing trace file access ($tracepipe or $tracefile)"
+	echo >&2 "Tracing configured in this kernel?"
+	exit 2
+fi
+
+# Build bpf program
+if [[ ! -e Makefile ]]; then
+	echo >&2 "ERROR: Please run from tools/bpf/examples directory."
+	exit 2
+fi
+make
+status=$?
+bpffile=${file%.c}.bpf
+if [[ "$status" != 0 || ! -e $bpffile ]]; then
+	echo >&2 "ERROR: compile failed or missing bpf output ($bpffile)"
+	echo >&2 "Check for complier errors. Quitting."
+	exit 2
+fi
+
+# Determine probe directory
+if (( $# == 1 )); then
+	while read line; do
+		if [[ "$line" == DESC* ]]; then
+			# convert: DESC("e syscalls:sys_enter_open")
+			# into:    syscalls/sys_enter_open
+			probedir=${line#* }
+			probedir=${probedir%\")}
+			probedir=${probedir//:/\/}
+			break
+		fi
+	done < $file
+	if [[ "$probedir" == "" ]]; then
+		echo >&2 "ERROR: probedir not found in $file"
+		echo >&2 "Searched for DESC line. Try specifying probedir."
+		exit 2
+	fi
+fi
+
+# Check tracing control files
+enablefile=/sys/kernel/debug/tracing/events/$probedir/enable
+filterfile=/sys/kernel/debug/tracing/events/$probedir/filter
+if [[ ! -e $enablefile || ! -e $filterfile ]]; then
+	echo >&2 "ERROR: missing a control file ($enablefile or $filterfile)"
+	if (( $# == 1 )); then
+		echo >&2 "Try specifying probedir."
+	else
+		echo >&2 "Check probedir specification: $probedir"
+	fi
+	exit 2
+fi
+
+# Prepare for tracing
+echo > $tracefile
+cat $bpffile > $filterfile
+trap "echo 0 > $enablefile; echo > $tracefile; echo; echo Tracing ended." SIGHUP SIGINT SIGTERM
+
+# Enable and print live tracing
+echo 1 > $enablefile
+echo "Tracing... Ctrl-C to end."
+cat $tracepipe
+
+# Cleanup if needed
+read state < $enablefile
+(( state == 1 )) && kill -INT $$
