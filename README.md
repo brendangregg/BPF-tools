@@ -1,6 +1,6 @@
 BPF-tools
 =========
 
-Linux Performance Tools using eBPF
+Linux Performance Tools using extended BPF (eBPF).
 
-Nothing to see here yet...
+Not much to see here yet...
