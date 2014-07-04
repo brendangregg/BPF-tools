@@ -25,7 +25,7 @@ void my_filter(struct bpf_context *ctx)
 {
 	char fmt[] = "BIG READ: %d requested bytes\n";
 	if (ctx->arg3 >= MIN_BYTES) {
-		bpf_trace_printk(fmt, sizeof(fmt), (long)ctx->arg3, NULL, NULL);
+		bpf_trace_printk(fmt, sizeof(fmt), (long)ctx->arg3, 0, 0);
 	}
 }
 
