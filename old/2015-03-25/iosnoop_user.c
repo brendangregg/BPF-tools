@@ -72,7 +72,7 @@ static void iosnoop_pipe(void)
 		/*
 		 * read args
 		 * these are a space delimitered list from _kern.c
-		 */ 
+		 */
 		ptr = strrchr(line, ':');
 		(void) strtok(ptr, " ");
 		bytes_s = strtok(NULL, " ");
