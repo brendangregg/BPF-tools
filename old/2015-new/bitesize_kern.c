@@ -17,11 +17,16 @@
 
 #define _(P) ({typeof(P) val = 0; bpf_probe_read(&val, sizeof(val), &P); val;})
 
+struct hist_key {
+	struct bpf_task_info info;
+	u32 index;
+};
+
 struct bpf_map_def SEC("maps") hist_map = {
-	.type = BPF_MAP_TYPE_ARRAY,
-	.key_size = sizeof(u32),
+	.type = BPF_MAP_TYPE_HASH,
+	.key_size = sizeof(struct hist_key),
 	.value_size = sizeof(long),
-	.max_entries = 64,
+	.max_entries = 1024,
 };
 
 static unsigned int log2(unsigned int v)
@@ -56,12 +61,18 @@ int bpf_prog1(struct pt_regs *ctx)
 {
 	long rq = ctx->di;
 	struct request *req = (struct request *)ctx->di;
+	long init_val = 1;
 	long *value;
-	u32 index = log2l(_(req->__data_len));
+	struct hist_key key = {};
+	key.index = log2l(_(req->__data_len) / 1024);
 
-	value = bpf_map_lookup_elem(&hist_map, &index);
+	bpf_get_current_task_info(&key.info, sizeof(key.info));
+
+	value = bpf_map_lookup_elem(&hist_map, &key);
 	if (value)
 		__sync_fetch_and_add(value, 1);
+	else
+		bpf_map_update_elem(&hist_map, &key, &init_val, BPF_ANY);
 	return 0;
 }
 

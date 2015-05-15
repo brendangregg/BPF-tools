@@ -1,0 +1,33 @@
+# ./bitehist
+Tracing block device I/O... Interval 5 secs. Ctrl-C to end.
+
+     kbytes          : count     distribution
+       0 -> 1        : 1        |                                      |
+       2 -> 3        : 0        |                                      |
+       4 -> 7        : 6377     |************************************* |
+       8 -> 15       : 2        |                                      |
+      16 -> 31       : 2        |                                      |
+      32 -> 63       : 738      |***                                   |
+      64 -> 127      : 2        |                                      |
+     128 -> 255      : 1        |                                      |
+
+     kbytes          : count     distribution
+       0 -> 1        : 0        |                                      |
+       2 -> 3        : 0        |                                      |
+       4 -> 7        : 6114     |************************************* |
+       8 -> 15       : 1        |                                      |
+      16 -> 31       : 0        |                                      |
+      32 -> 63       : 1        |                                      |
+
+     kbytes          : count     distribution
+       0 -> 1        : 0        |                                      |
+       2 -> 3        : 0        |                                      |
+       4 -> 7        : 8396     |************************************* |
+       8 -> 15       : 0        |                                      |
+      16 -> 31       : 0        |                                      |
+      32 -> 63       : 1        |                                      |
+[...]
+# ./bitehist -h
+USAGE: bitehist [-h] [interval [count]]
+		-h	# help (this message)
+		-v	# verbose

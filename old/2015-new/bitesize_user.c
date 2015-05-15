@@ -15,6 +15,7 @@
  * 15-Apr-2015	Brendan Gregg	Created this.
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -57,48 +58,90 @@ static void stars(char *str, long val, long max, int width)
 	str[i] = '\0';
 }
 
-static void print_log2_hist(int fd, const char *type)
-{
-	int key, i;
-	long value;
-	long data[MAX_INDEX] = {};
-	char starstr[MAX_STARS];
-	int max_ind = -1;
-	long max_value = 0;
+struct hist_key {
+	struct bpf_task_info info;
+	__u32 index;
+};
 
-	for (key = 0; key < MAX_INDEX; key++) {
-		bpf_lookup_elem(fd, &key, &value);
-		data[key] = value;
-		if (value && key > max_ind)
-			max_ind = key;
-		if (value > max_value)
-			max_value = value;
+static void print_log2_hist_for_pid(int fd, int pid, const char *type)
+{
+	struct hist_key key = {}, next_key;
+	char starstr[MAX_STARS];
+	long value, low, high;
+	long data[MAX_INDEX] = {};
+	int max_ind = -1, min_ind = INT_MAX - 1;
+	long max_value = 0;
+	int i, ind;
+
+	while (bpf_get_next_key(fd, &key, &next_key) == 0) {
+		if (next_key.info.pid != pid) {
+			key = next_key;
+			continue;
+		}
+		bpf_lookup_elem(fd, &next_key, &value);
+		ind = next_key.index;
+		data[ind] += value;
+		if (value && ind > max_ind)
+			max_ind = ind;
+		if (value && ind < min_ind)
+			min_ind = ind;
+		if (data[ind] > max_value)
+			max_value = data[ind];
+		key = next_key;
 	}
 
 	if (max_ind)
 		printf("     %-15s : count     distribution\n", type);
-	for (i = 1; i <= max_ind + 1; i++) {
+	for (i = min_ind + 1; i <= max_ind + 1; i++) {
 		stars(starstr, data[i - 1], max_value, MAX_STARS);
-		printf("%8ld -> %-8ld : %-8ld |%-*s|\n",
-		       (1l << i) >> 1, (1l << i) - 1, data[i - 1],
+		low = (1l << i) >> 1;
+		high = (1l << i) - 1;
+		if (low == high)
+			low--;
+		printf("%8ld -> %-8ld : %-8ld |%-*s|\n", low, high, data[i - 1],
 		       MAX_STARS, starstr);
 	}
 }
 
-static void clear_map(int fd)
+static void print_log2_hists(int fd, const char *type)
 {
-	int key;
-	long *value = 0;
+	struct hist_key key = {}, next_key;
+	static struct bpf_task_info tasks[1024];
+	int task_cnt = 0;
+	int i;
 
-	for (key = 0; key < MAX_INDEX; key++) {
-		bpf_update_elem(fd, &key, &value, BPF_ANY);
+	while (bpf_get_next_key(fd, &key, &next_key) == 0) {
+		int found = 0;
+		for (i = 0; i < task_cnt; i++)
+			if (tasks[i].pid == next_key.info.pid)
+				found = 1;
+		if (!found)
+			tasks[task_cnt++] = next_key.info;
+		key = next_key;
+	}
+
+	for (i = 0; i < task_cnt; i++) {
+		printf("\n  PID: %d UID: %d CMD: %s\n",
+		       tasks[i].pid, tasks[i].uid, tasks[i].comm);
+		print_log2_hist_for_pid(fd, tasks[i].pid, type);
+	}
+
+}
+
+static void clear_hash(int fd)
+{
+	struct hist_key key = {}, next_key;
+
+	while (bpf_get_next_key(fd, &key, &next_key) == 0) {
+		bpf_delete_elem(fd, &next_key);
+		key = next_key;
 	}
 }
 
 static void int_exit(int sig)
 {
 	printf("\n");
-	print_log2_hist(map_fd[0], "kbytes");
+	print_log2_hists(map_fd[0], "kbytes");
 	exit(0);
 }
 
@@ -106,6 +149,7 @@ int main(int argc, char *argv[])
 {
 	char filename[256];
 	int option, i;
+	time_t now;
 
 	snprintf(filename, sizeof(filename), "%s_kern.o", argv[0]);
 
@@ -147,9 +191,13 @@ int main(int argc, char *argv[])
 	/* consume map data */
 	for (i = 0; i < count; i++) {
 		sleep(interval);
+		if (count != 1) {
+			now = time(NULL);
+			printf("\n%s", ctime(&now));
+		}
+		print_log2_hists(map_fd[0], "kbytes");
+		clear_hash(map_fd[0]);
 		printf("\n");
-		print_log2_hist(map_fd[0], "kbytes");
-		clear_map(map_fd[0]);
 	}
 
 	return 0;
