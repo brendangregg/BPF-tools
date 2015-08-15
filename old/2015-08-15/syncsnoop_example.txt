@@ -1,0 +1,7 @@
+# ./syncsnoop.py 
+TIME(s)            CALL
+16458148.611952    sync()
+16458151.533709    sync()
+^C
+
+Tracing when the "sync" command was executed in another server session.

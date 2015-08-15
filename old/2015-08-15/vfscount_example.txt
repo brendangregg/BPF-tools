@@ -1,0 +1,8 @@
+# ./vfscount.py 
+Tracing... Ctrl-C to end.
+^C
+ADDR             FUNC            COUNT
+ffffffff811f2cc1 vfs_create         24
+ffffffff811e71c1 vfs_write         203
+ffffffff811e6061 vfs_open          765
+ffffffff811e7091 vfs_read         1852
