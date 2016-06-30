@@ -1,0 +1,108 @@
+# ./bitesize 5 2
+Tracing block device I/O... Interval 5 secs.
+
+Thu May 14 23:03:17 2015
+
+  PID: 583 UID: 0 CMD: cksum
+     kbytes          : count     distribution
+       4 -> 7        : 37       |                                      |
+       8 -> 15       : 7        |                                      |
+      16 -> 31       : 5        |                                      |
+      32 -> 63       : 3        |                                      |
+      64 -> 127      : 1        |                                      |
+     128 -> 255      : 2152     |************************************* |
+
+  PID: 0 UID: 0 CMD: swapper/0
+     kbytes          : count     distribution
+       4 -> 7        : 180      |************************************* |
+       8 -> 15       : 25       |****                                  |
+      16 -> 31       : 1        |                                      |
+      32 -> 63       : 0        |                                      |
+      64 -> 127      : 0        |                                      |
+     128 -> 255      : 117      |***********************               |
+
+  PID: 582 UID: 0 CMD: dd
+     kbytes          : count     distribution
+       4 -> 7        : 70       |**                                    |
+       8 -> 15       : 0        |                                      |
+      16 -> 31       : 1        |                                      |
+      32 -> 63       : 737      |************************************* |
+
+  PID: 1953 UID: 0 CMD: supervise
+     kbytes          : count     distribution
+       4 -> 7        : 10       |************************************* |
+
+  PID: 584 UID: 0 CMD: tar
+     kbytes          : count     distribution
+       4 -> 7        : 4061     |************************************* |
+       8 -> 15       : 0        |                                      |
+      16 -> 31       : 1        |                                      |
+      32 -> 63       : 0        |                                      |
+      64 -> 127      : 2        |                                      |
+     128 -> 255      : 1        |                                      |
+
+  PID: 269 UID: 0 CMD: jbd2/xvda1-8
+     kbytes          : count     distribution
+       4 -> 7        : 1        |************************************* |
+       8 -> 15       : 0        |                                      |
+      16 -> 31       : 0        |                                      |
+      32 -> 63       : 1        |************************************* |
+
+  PID: 575 UID: 0 CMD: bitesize
+     kbytes          : count     distribution
+       4 -> 7        : 1        |************************************* |
+
+  PID: 1964 UID: 0 CMD: supervise
+     kbytes          : count     distribution
+       4 -> 7        : 10       |************************************* |
+
+
+Thu May 14 23:03:22 2015
+
+  PID: 583 UID: 0 CMD: cksum
+     kbytes          : count     distribution
+       8 -> 15       : 1        |                                      |
+      16 -> 31       : 1        |                                      |
+      32 -> 63       : 2        |                                      |
+      64 -> 127      : 4        |                                      |
+     128 -> 255      : 278      |************************************* |
+
+  PID: 2587 UID: 60004 CMD: epic_plugin.pl
+     kbytes          : count     distribution
+       4 -> 7        : 3        |************************************* |
+
+  PID: 0 UID: 0 CMD: swapper/0
+     kbytes          : count     distribution
+       4 -> 7        : 22       |************************************* |
+       8 -> 15       : 1        |                                      |
+      16 -> 31       : 0        |                                      |
+      32 -> 63       : 0        |                                      |
+      64 -> 127      : 0        |                                      |
+     128 -> 255      : 9        |**************                        |
+
+  PID: 389 UID: 0 CMD: xfsaild/md0
+     kbytes          : count     distribution
+       0 -> 1        : 1        |*****                                 |
+       2 -> 3        : 0        |                                      |
+       4 -> 7        : 3        |******************                    |
+       8 -> 15       : 6        |************************************* |
+
+  PID: 1953 UID: 0 CMD: supervise
+     kbytes          : count     distribution
+       4 -> 7        : 10       |************************************* |
+
+  PID: 584 UID: 0 CMD: tar
+     kbytes          : count     distribution
+       4 -> 7        : 11052    |************************************* |
+
+  PID: 269 UID: 0 CMD: jbd2/xvda1-8
+     kbytes          : count     distribution
+       4 -> 7        : 1        |************************************* |
+       8 -> 15       : 0        |                                      |
+      16 -> 31       : 0        |                                      |
+      32 -> 63       : 1        |************************************* |
+
+  PID: 1964 UID: 0 CMD: supervise
+     kbytes          : count     distribution
+       4 -> 7        : 10       |************************************* |
+
