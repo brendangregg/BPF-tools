@@ -82,10 +82,10 @@ parser.add_argument("--stack-storage-size", default=1024,
 parser.add_argument("duration", nargs="?", default=99999999,
     type=positive_nonzero_int,
     help="duration of trace, in seconds")
-parser.add_argument("-m", "--min-block-time", default=1,
+parser.add_argument("-m", "--min-block-time", default=10,
     type=positive_nonzero_int,
     help="the amount of time in microseconds over which we " +
-         "store traces (default 1)")
+         "store traces (default 10)")
 parser.add_argument("-M", "--max-block-time", default=(1 << 64) - 1,
     type=positive_nonzero_int,
     help="the amount of time in microseconds under which we " +
