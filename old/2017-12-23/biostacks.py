@@ -119,7 +119,7 @@ struct key_t {
 BPF_HASH(counts, struct key_t);
 BPF_HASH(start, struct request *);
 BPF_HASH(info, struct request *, struct key_t);
-BPF_STACK_TRACE(stack_traces, STACK_STORAGE_SIZE)
+BPF_STACK_TRACE(stack_traces, STACK_STORAGE_SIZE);
 
 int trace_req_start(struct pt_regs *ctx, struct request *req) {
     u32 pid = bpf_get_current_pid_tgid();
