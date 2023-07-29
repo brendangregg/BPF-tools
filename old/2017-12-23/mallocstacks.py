@@ -96,7 +96,7 @@ struct key_t {
     char name[TASK_COMM_LEN];
 };
 BPF_HASH(bytes, struct key_t);
-BPF_STACK_TRACE(stack_traces, STACK_STORAGE_SIZE)
+BPF_STACK_TRACE(stack_traces, STACK_STORAGE_SIZE);
 
 int trace_malloc(struct pt_regs *ctx, size_t size) {
     u32 pid = bpf_get_current_pid_tgid();
